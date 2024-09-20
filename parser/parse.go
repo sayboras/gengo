@@ -33,8 +33,9 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/gengo/types"
 	"k8s.io/klog/v2"
+
+	"k8s.io/gengo/types"
 )
 
 // This clarifies when a pkg path has been canonicalized.
@@ -716,6 +717,12 @@ func (b *Builder) walkType(u types.Universe, useName *types.Name, in tc.Type) *t
 	name := tcNameToName(in.String())
 	if useName != nil {
 		name = *useName
+	}
+
+	// Handle alias types conditionally on go1.22+.
+	// Inline this once the minimum supported version is go1.22
+	if out := b.walkAliasType(u, in); out != nil {
+		return out
 	}
 
 	switch t := in.(type) {
